@@ -60,18 +60,19 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     try:
         # Декодируем токен
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        # Извлекаем имя пользователя из полезной нагрузки токена (subject)
-        username: str = payload.get("sub")
-        if username is None:
+        # Извлекаем ID пользователя из полезной нагрузки токена (subject)
+        id: int = payload.get("sub") # type: ignore
+        if id is None:
             raise credentials_exception
         # Создаем модель TokenData для валидации
-        token_data = schemas.TokenData(username=username)
+        token_data = schemas.TokenData(id=id)
     except JWTError:
         raise credentials_exception # Ошибка при декодировании токена
 
-    # Находим пользователя в базе данных по имени пользователя
-    user = db.query(models.User).filter(models.User.username == token_data.username).first()
+    # Находим пользователя в базе данных по ID
+    user = db.query(models.User).filter(models.User.id == token_data.id).first()
     if user is None:
         raise credentials_exception # Пользователь не найден (хотя токен валиден)
 
     return user # Возвращаем объект пользователя SQLAlchemy
+

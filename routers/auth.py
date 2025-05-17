@@ -11,7 +11,7 @@ router = APIRouter(
     tags=["auth"],
 )
 
-@router.post("/register", response_model=schemas.UserCreate, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=schemas.UserRegisterResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Регистрация нового пользователя."""
     # Проверяем, существует ли пользователь с таким именем
@@ -36,7 +36,10 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     # return user # Возвращать объект user может быть не совсем правильно, так как он содержит пароль в Pydantic модели.
     # Лучше вернуть только username или ID, или использовать отдельную схему ответа.
     # Например, просто подтверждение регистрации:
-    return {"message": "Пользователь успешно зарегистрирован", "username": db_user.username}
+    return {
+        "username": db_user.username,
+        "message": "Пользователь успешно зарегистрирован"
+    }
 
 
 @router.post("/login", response_model=schemas.Token)

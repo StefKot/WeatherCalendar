@@ -3,3 +3,4 @@
 /__pycache__/
 /routers/__pycache__/
 /weather_calendar.db
+/.pytest_cache

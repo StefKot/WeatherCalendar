@@ -18,6 +18,10 @@ class UserLogin(BaseModel):
     username: str
     password: str
 
+class UserRegisterResponse(BaseModel):
+    username: str
+    message: str
+
 # Схема для токена доступа (ответ после входа)
 class Token(BaseModel):
     access_token: str
@@ -25,12 +29,18 @@ class Token(BaseModel):
 
 # Схема данных, извлекаемых из токена
 class TokenData(BaseModel):
-    username: Optional[str] = None
+    id: Optional[int] = None
 
 # Схема для смены пароля
 class ChangePassword(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=6)
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    class Config:
+        from_attributes = True
 
 # --- Схемы для записей о погоде ---
 
