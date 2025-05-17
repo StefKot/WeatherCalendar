@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- прозрачный фон -->
+    <solid android:color="@android:color/transparent" />
+    <!-- цветная рамка -->
+<!--    <stroke-->
+<!--        android:width="2dp"-->
+<!--        android:color="@color/design_default_color_primary" />-->
+<!--    &lt;!&ndash; скруглённые углы, при необходимости &ndash;&gt;-->
+<!--    <corners android:radius="16dp" />-->
+</shape>
