@@ -33,7 +33,11 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
     # Возвращаем данные пользователя (без хешированного пароля)
     # Используем схему UserCreate для ответа, так как она соответствует структуре
-    return user # Pydantic автоматически исключит hashed_password т.к. он не в схеме
+    # return user # Возвращать объект user может быть не совсем правильно, так как он содержит пароль в Pydantic модели.
+    # Лучше вернуть только username или ID, или использовать отдельную схему ответа.
+    # Например, просто подтверждение регистрации:
+    return {"message": "Пользователь успешно зарегистрирован", "username": db_user.username}
+
 
 @router.post("/login", response_model=schemas.Token)
 def login_for_access_token(user: schemas.UserLogin, db: Session = Depends(get_db)):
@@ -57,8 +61,9 @@ def login_for_access_token(user: schemas.UserLogin, db: Session = Depends(get_db
 
     # Если логин и пароль верны, создаем токен
     # sub (subject) в токене - обычно уникальный идентификатор пользователя (можно использовать username или id)
+    # Рекомендуется использовать ID пользователя, так как username может потенциально измениться
     access_token = security.create_access_token(
-        data={"sub": db_user.username}
+        data={"sub": str(db_user.id)} # Передаем ID как строку
     )
 
     # Возвращаем токен
@@ -88,3 +93,18 @@ def change_password(
     # db.refresh(current_user) # Не обязательно для PUT, если не возвращаем объект
 
     return {"message": "Пароль успешно изменен"}
+
+# --- НОВЫЙ ЭНДПОИНТ ДЛЯ ПРОВЕРКИ СТАТУСА ---
+@router.get("/status", response_model=schemas.UserResponse) # Можно использовать схему для ответа, например UserResponse
+def check_auth_status(
+    # Используем зависимость get_current_user.
+    # Если токен невалиден, эта зависимость автоматически вызовет 401 Unauthorized.
+    # Если токен валиден, current_user будет содержать объект пользователя из БД.
+    current_user: models.User = Depends(security.get_current_user)
+):
+    """Проверка валидности JWT токена и получение информации о текущем пользователе."""
+    # Если мы дошли до этой строки, значит get_current_user успешно выполнился,
+    # то есть токен валиден и пользователь найден.
+    # Возвращаем информацию о пользователе, исключая хешированный пароль.
+    # Схема UserResponse должна быть определена в schemas.py и не включать hashed_password.
+    return current_user
