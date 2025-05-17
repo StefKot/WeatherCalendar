@@ -1,0 +1,5 @@
+/.venv
+/.vscode
+/__pycache__/
+/routers/__pycache__/
+/weather_calendar.db
