@@ -99,6 +99,10 @@ uvicorn main:app --reload
   Смена пароля текущего пользователя (Bearer).  
   Вход: [`ChangePassword`](schemas.py#L19)
 
+- `GET /auth/status`  
+  Проверка валидности JWT-токена и получение информации о текущем пользователе (Bearer).  
+  Ответ: [`UserResponse`](schemas.py#L17)
+
 ### Записи о погоде (`/observations`)
 
 Все эндпоинты `/observations` защищены JWT (Bearer).
