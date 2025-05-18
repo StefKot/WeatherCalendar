@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.bas.weathercalendar.data.TokenManager
 import com.bas.weathercalendar.network.RetrofitClient
@@ -29,7 +30,8 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         _loginStatus.value = LoginResult.Loading
         viewModelScope.launch {
             try {
-                val response = RetrofitClient.instance.loginUser(userLogin)
+                val response = RetrofitClient.createAuthService(context = application.applicationContext)
+                    .loginUser(userLogin)
                 if (response.isSuccessful && response.body() != null) {
                     tokenManager.saveToken(response.body()!!.accessToken)
                     _loginStatus.postValue(LoginResult.Success)

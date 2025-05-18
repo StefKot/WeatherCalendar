@@ -1,7 +1,7 @@
 package com.bas.weathercalendar.network
 
 import android.content.Context // Нужен для инициализации TokenManager в Interceptor
-import com.bas.weathercalendar.App
+import com.bas.weathercalendar.data.TokenManager
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -11,29 +11,45 @@ object RetrofitClient {
 
     private const val BASE_URL = "http://95.163.152.133:8000/"
 
-    // Ленивая инициализация Context из Application класса
-    // Это нужно, чтобы AuthInterceptor мог получить доступ к TokenManager, который требует Context
-    private val applicationContext: Context by lazy {
-        App.instance.applicationContext
-    }
+    fun createAuthService(context: Context): AuthApiService {
+        val tokenManager = TokenManager(context.applicationContext)
+        val authInterceptor = AuthInterceptor(tokenManager)
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY // Для отладки, можно убрать в релизе
+        }
 
-    private val authInterceptor = AuthInterceptor(applicationContext) // Передаем контекст
+        val client = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .build()
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .addInterceptor(authInterceptor) // Добавляем наш AuthInterceptor
-        .build()
-
-    val instance: AuthApiService by lazy {
-        val retrofit = Retrofit.Builder()
+        return Retrofit.Builder()
             .baseUrl(BASE_URL)
-            .client(okHttpClient) // Используем OkHttpClient с AuthInterceptor
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create()) // Убедитесь, что конвертер соответствует вашему API
+            .build()
+            .create(AuthApiService::class.java)
+    }
+
+    fun createWeatherService(context: Context): WeatherApiService {
+        val tokenManager = TokenManager(context.applicationContext)
+        val authInterceptor = AuthInterceptor(tokenManager) // Используем тот же интерцептор для авторизации
+
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+        val client = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor) // Важно для эндпоинтов, требующих авторизации
+            .addInterceptor(loggingInterceptor)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-        retrofit.create(AuthApiService::class.java)
+            .create(WeatherApiService::class.java)
     }
 }

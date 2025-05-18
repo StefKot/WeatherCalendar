@@ -1,18 +1,49 @@
 package com.bas.weathercalendar
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.CalendarView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels // Для by viewModels()
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.bas.weathercalendar.data.TokenManager
-
-// Предположим, у вас будут такие Activity:
-import com.bas.weathercalendar.features.AddWeatherEntryActivity // Activity для добавления записи
-import com.bas.weathercalendar.features.ViewWeatherEntriesActivity // Activity для просмотра записей
+import com.bas.weathercalendar.features.AddWeatherEntryActivity
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tokenManager: TokenManager
+    private val viewModel: MainActivityViewModel by viewModels() // Инициализация ViewModel
+
+    private lateinit var calendarView: CalendarView
+    private lateinit var recyclerViewObservations: RecyclerView
+    private lateinit var observationAdapter: WeatherObservationAdapter
+    private lateinit var progressBar: ProgressBar
+    private lateinit var textViewNoData: TextView
+    private lateinit var fabAddEntry: FloatingActionButton
+    private lateinit var buttonExit: Button
+
+    private val currentCalendar = Calendar.getInstance() // Для управления отображаемым месяцем/годом
+
+    // ActivityResultLauncher для AddWeatherEntryActivity
+    private val addWeatherEntryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            // Запись была успешно добавлена, обновляем список наблюдений
+            viewModel.refreshObservationsForSelectedDate()
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,43 +51,120 @@ class MainActivity : AppCompatActivity() {
         tokenManager = TokenManager(applicationContext)
 
         if (tokenManager.getToken() == null) {
-            // Токена нет, перенаправляем на экран входа
             navigateToAuthActivity()
-            return // Предотвращаем выполнение остального кода onCreate, если пользователь не авторизован
+            return
         }
 
         setContentView(R.layout.activity_main)
 
-        val addEntryButton: Button = findViewById(R.id.button_add_weather_entry)
-        val viewEntriesButton: Button = findViewById(R.id.button_view_weather_entries)
-        val logoutButton: Button = findViewById(R.id.button_exit)
+        // Инициализация View
+        calendarView = findViewById(R.id.calendar_view)
+        recyclerViewObservations = findViewById(R.id.recycler_view_observations)
+        progressBar = findViewById(R.id.progress_bar_main)
+        textViewNoData = findViewById(R.id.text_view_no_data)
+        fabAddEntry = findViewById(R.id.button_add_weather_entry_main)
+        buttonExit = findViewById(R.id.button_exit)
 
-        addEntryButton.setOnClickListener {
-            // TODO: Заменить на реальный Intent для AddWeatherEntryActivity
-             val intent = Intent(this, AddWeatherEntryActivity::class.java)
-             startActivity(intent)
-            // Для примера пока оставим Toast
-//            android.widget.Toast.makeText(this, "Переход к добавлению записи", android.widget.Toast.LENGTH_SHORT).show()
+
+        setupRecyclerView()
+        setupCalendarView()
+        setupObservers()
+        setupButtonClickListeners()
+
+    }
+
+
+    private fun setupRecyclerView() {
+        observationAdapter = WeatherObservationAdapter() // Создали адаптер ранее
+        recyclerViewObservations.apply {
+            adapter = observationAdapter
+            layoutManager = LinearLayoutManager(this@MainActivity)
+        }
+    }
+
+    private fun setupCalendarView() {
+        // Устанавливаем слушатель выбора даты
+        calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
+            val selectedCalendar = Calendar.getInstance()
+            selectedCalendar.set(year, month, dayOfMonth)
+            viewModel.setSelectedDate(selectedCalendar) // ViewModel загрузит данные
+            // Обновляем currentCalendar, чтобы кнопки навигации по месяцам работали корректно
+            currentCalendar.set(year, month, dayOfMonth)
+        }
+        // Устанавливаем текущую дату в CalendarView из ViewModel или текущую системную
+        viewModel.selectedDate.value?.let { dateStr ->
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            try {
+                calendarView.date = sdf.parse(dateStr)?.time ?: System.currentTimeMillis()
+            } catch (e: Exception) {
+                calendarView.date = System.currentTimeMillis()
+            }
+        } ?: run {
+            calendarView.date = System.currentTimeMillis()
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.observations.observe(this) { observations ->
+            observationAdapter.submitList(observations)
+            textViewNoData.visibility = if (observations.isNullOrEmpty() && !viewModel.isLoading.value!!) View.VISIBLE else View.GONE
         }
 
-        viewEntriesButton.setOnClickListener {
-            // TODO: Заменить на реальный Intent для ViewWeatherEntriesActivity
-             val intent = Intent(this, ViewWeatherEntriesActivity::class.java)
-             startActivity(intent)
-            // Для примера пока оставим Toast
-//            android.widget.Toast.makeText(this, "Переход к просмотру записей", android.widget.Toast.LENGTH_SHORT).show()
+        viewModel.isLoading.observe(this) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            if (isLoading) { // Если загрузка, скрываем текст "нет данных"
+                textViewNoData.visibility = View.GONE
+            } else { // Если загрузка закончилась, проверяем, есть ли данные
+                textViewNoData.visibility = if (viewModel.observations.value.isNullOrEmpty()) View.VISIBLE else View.GONE
+            }
         }
 
-        logoutButton.setOnClickListener {
-            tokenManager.clearToken() // Очищаем токен
+        viewModel.error.observe(this) { errorMessage ->
+            errorMessage?.let {
+                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        viewModel.selectedDate.observe(this) { date ->
+
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            try {
+                val parsedDate = sdf.parse(date)
+                if (parsedDate != null) {
+                    currentCalendar.time = parsedDate
+                }
+            } catch (e: Exception) {
+                // Handle parsing error
+            }
+        }
+
+        viewModel.navigateToAddEntry.observe(this) { dateAndCityPair ->
+            dateAndCityPair?.let { (date, city) ->
+                val intent = Intent(this, AddWeatherEntryActivity::class.java).apply {
+                    putExtra(AddWeatherEntryActivity.EXTRA_DATE, date) // Передаем выбранную дату
+                }
+                addWeatherEntryLauncher.launch(intent) // Запускаем для получения результата
+                viewModel.onNavigationToAddEntryDone() // Сбрасываем событие навигации
+            }
+        }
+    }
+
+    private fun setupButtonClickListeners() {
+        fabAddEntry.setOnClickListener {
+            viewModel.onAddEntryClicked()
+        }
+
+        buttonExit.setOnClickListener {
+            tokenManager.clearToken()
             navigateToAuthActivity()
         }
+
     }
 
     private fun navigateToAuthActivity() {
         val intent = Intent(this, AuthActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
-        finish() // Закрываем MainActivity
+        finish()
     }
 }

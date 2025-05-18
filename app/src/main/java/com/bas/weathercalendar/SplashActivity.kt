@@ -59,7 +59,7 @@ class SplashActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO + coroutineExceptionHandler) {
             try {
                 // Вызываем новый эндпоинт /auth/status
-                val response = RetrofitClient.instance.checkAuthStatus()
+                val response = RetrofitClient.createAuthService(context = applicationContext).checkAuthStatus()
 
                 withContext(Dispatchers.Main) {
                     progressBar.visibility = View.GONE

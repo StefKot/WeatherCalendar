@@ -20,4 +20,25 @@
 
     <string name="add_weather_entry">Добавить запись о погоде</string>
     <string name="view_weather_entries">Просмотреть записи</string>
+
+    <string name="city">Город</string>
+    <string name="select_date">Выбрать дату</string>
+    <string name="select_time">Выбрать время</string>
+    <string name="temperature_celsius">Температура (°C)</string>
+    <string name="precipitation">Осадки</string>
+    <string name="save_entry">Сохранить запись</string>
+    <string name="error_field_required">Это поле обязательно</string>
+    <string name="entry_saved_successfully">Запись успешно сохранена</string>
+    <string name="error_saving_entry">Ошибка при сохранении записи</string>
+    <string name="create_obs">Создание записи</string>
+    <string name="no_data">Нет данных на выбранную дату</string>
+    <string name="less_than"><![CDATA[<]]></string>
+    <string name="more_than"><![CDATA[>]]></string>
+
+    <string-array name="precipitation_types">
+        <item>Ясно</item>
+        <item>Дождь</item>
+        <item>Снег</item>
+        <item>Град</item>
+    </string-array>
 </resources>

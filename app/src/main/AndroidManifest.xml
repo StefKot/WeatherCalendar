@@ -17,9 +17,6 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".features.ViewWeatherEntriesActivity"
-            android:exported="false" />
-        <activity
             android:name=".features.AddWeatherEntryActivity"
             android:exported="false" />
         <activity

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
 import com.bas.weathercalendar.network.RetrofitClient
 import com.bas.weathercalendar.network.model.HttpValidationError
@@ -26,7 +27,8 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         _registrationStatus.value = RegistrationResult.Loading
         viewModelScope.launch {
             try {
-                val response = RetrofitClient.instance.registerUser(userCreate)
+                val response = RetrofitClient.createAuthService(context = application.applicationContext)
+                    .registerUser(userCreate)
                 if (response.isSuccessful) {
                     // OpenAPI говорит, что при успехе (201) возвращается UserCreate
                     _registrationStatus.postValue(RegistrationResult.Success("Пользователь успешно зарегистрирован! Теперь вы можете войти."))

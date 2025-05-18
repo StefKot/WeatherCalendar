@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels // Для by viewModels()
 import com.bas.weathercalendar.R
+import com.bas.weathercalendar.network.model.ResetPassword
 import com.bas.weathercalendar.network.model.UserCreate
 
 class ResetPassFragment : Fragment() {
@@ -66,8 +67,8 @@ class ResetPassFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val userCreate = UserCreate(username = login, password = password)
-            resetPassViewModel.resetPassword(userCreate)
+            val ResetPassword = ResetPassword(username = login, new_password = password)
+            resetPassViewModel.resetPassword(ResetPassword)
         }
 
         resetPassViewModel.resetStatus.observe(viewLifecycleOwner) { result ->
