@@ -72,30 +72,25 @@ def login_for_access_token(user: schemas.UserLogin, db: Session = Depends(get_db
     # Возвращаем токен
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.put("/change_password", status_code=status.HTTP_200_OK)
-def change_password(
-    passwords: schemas.ChangePassword,
-    db: Session = Depends(get_db),
-    # Защищаем эндпоинт: только аутентифицированный пользователь может сменить пароль
-    current_user: models.User = Depends(security.get_current_user)
+@router.put("/reset_password", status_code=status.HTTP_200_OK)
+def reset_password(
+    data: schemas.ResetPassword,
+    db: Session = Depends(get_db)
 ):
-    """Смена пароля текущего пользователя."""
-    # Проверяем текущий пароль
-    if not security.verify_password(passwords.current_password, current_user.hashed_password):
+    """Сброс пароля по логину без знания старого пароля."""
+    # Ищем пользователя по username
+    db_user = db.query(models.User).filter(models.User.username == data.username).first()
+    if not db_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Неверный текущий пароль"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь с таким именем не найден"
         )
 
-    # Хешируем новый пароль
-    new_hashed_password = security.get_password_hash(passwords.new_password)
-
-    # Обновляем пароль в базе данных
-    current_user.hashed_password = new_hashed_password
+    # Хешируем и сохраняем новый пароль
+    db_user.hashed_password = security.get_password_hash(data.new_password)
     db.commit()
-    # db.refresh(current_user) # Не обязательно для PUT, если не возвращаем объект
 
-    return {"message": "Пароль успешно изменен"}
+    return {"message": "Пароль успешно сброшен"}
 
 # --- НОВЫЙ ЭНДПОИНТ ДЛЯ ПРОВЕРКИ СТАТУСА ---
 @router.get("/status", response_model=schemas.UserResponse) # Можно использовать схему для ответа, например UserResponse

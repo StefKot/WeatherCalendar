@@ -42,6 +42,10 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class ResetPassword(BaseModel):
+    username: str
+    new_password: str = Field(..., min_length=6)
+
 # --- Схемы для записей о погоде ---
 
 # Схема для создания записи о погоде (входящие данные)

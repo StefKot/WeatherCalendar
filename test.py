@@ -76,12 +76,12 @@ def test_register_login_and_status(client):
 
     # Смена пароля
     resp = client.put(
-        "/auth/change_password",
+        "/auth/reset_password",
         headers=headers,
-        json={"current_password": "secret123", "new_password": "newpass456"}
+        json={"username": "alice", "new_password": "newpass456"}
     )
     assert resp.status_code == 200
-    assert resp.json()["message"] == "Пароль успешно изменен"
+    assert resp.json()["message"] == "Пароль успешно сброшен"
 
     # Логин с новым паролем
     resp = client.post(
