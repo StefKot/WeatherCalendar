@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    private const val BASE_URL = "http://10.0.2.2:8000/"
+    private const val BASE_URL = "http://95.163.152.133:8000/"
 
     // Ленивая инициализация Context из Application класса
     // Это нужно, чтобы AuthInterceptor мог получить доступ к TokenManager, который требует Context

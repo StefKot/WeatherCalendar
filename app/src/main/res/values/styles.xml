@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BorderedEditTextStyle">
+        <item name="android:background">@drawable/edit_text_border</item>
+        <!-- Можно добавить и другие свойства при необходимости -->
+    </style>
+</resources>

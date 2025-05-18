@@ -6,24 +6,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.Toast
+import android.widget.ProgressBar // Добавьте ProgressBar в ваш fragment_register.xml
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels // Для by viewModels()
 import com.bas.weathercalendar.R
 import com.bas.weathercalendar.network.model.UserCreate
-import com.bas.weathercalendar.register.RegistrationResult
 
-class RegisterFragment : Fragment() {
+class ResetPassFragment : Fragment() {
 
-    private val registerViewModel: RegisterViewModel by viewModels()
+    private val resetPassViewModel: ResetPassViewModel by viewModels()
 
     private lateinit var editTextLogin: EditText
     private lateinit var editTextPassword: EditText
     private lateinit var editTextPasswordAgain: EditText
-    private lateinit var buttonRegisterAction: Button
+    private lateinit var buttonResetAction: Button
     private lateinit var buttonBack: Button
     private lateinit var progressBar: ProgressBar
 
@@ -31,18 +29,18 @@ class RegisterFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_register, container, false)
+        return inflater.inflate(R.layout.fragment_reset_pass, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        editTextLogin = view.findViewById(R.id.editText_registerLogin)
-        editTextPassword = view.findViewById(R.id.editText_registerPassword)
-        editTextPasswordAgain = view.findViewById(R.id.editText_registerPasswordAgain)
-        buttonRegisterAction = view.findViewById(R.id.button_register_action)
+        editTextLogin = view.findViewById(R.id.editText_resetLogin)
+        editTextPassword = view.findViewById(R.id.editText_resetPassword)
+        editTextPasswordAgain = view.findViewById(R.id.editText_resetPasswordAgain)
+        buttonResetAction = view.findViewById(R.id.button_reset_action)
         buttonBack = view.findViewById(R.id.button_back)
-        progressBar = view.findViewById(R.id.progressBarRegister)
+        progressBar = view.findViewById(R.id.progressBarReset)
         progressBar.visibility = View.GONE // Скрыть по умолчанию
 
 
@@ -50,7 +48,7 @@ class RegisterFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        buttonRegisterAction.setOnClickListener {
+        buttonResetAction.setOnClickListener {
             val login = editTextLogin.text.toString().trim()
             val password = editTextPassword.text.toString().trim()
             val passwordAgain = editTextPasswordAgain.text.toString().trim()
@@ -69,13 +67,13 @@ class RegisterFragment : Fragment() {
             }
 
             val userCreate = UserCreate(username = login, password = password)
-            registerViewModel.registerUser(userCreate)
+            resetPassViewModel.resetPassword(userCreate)
         }
 
-        registerViewModel.registrationStatus.observe(viewLifecycleOwner) { result ->
-            progressBar.isVisible = result is RegistrationResult.Loading
+        resetPassViewModel.resetStatus.observe(viewLifecycleOwner) { result ->
+            progressBar.isVisible = result is ResetResult.Loading
             when (result) {
-                is RegistrationResult.Success -> {
+                is ResetResult.Success -> {
                     AlertDialog.Builder(requireContext())
                         .setTitle("Успех")
                         .setMessage(result.message)
@@ -85,15 +83,15 @@ class RegisterFragment : Fragment() {
                         }
                         .show()
                 }
-                is RegistrationResult.Error -> {
+                is ResetResult.Error -> {
                     showErrorAlert(result.errorMessage)
                 }
-                is RegistrationResult.Loading -> {
-                    buttonRegisterAction.isEnabled = false
-                    // прогресс-бар уже показан через isVisible
+                is ResetResult.Loading -> {
+                    buttonResetAction.isEnabled = false
+                    progressBar.visibility = View.VISIBLE // Показываем прогресс бар
                 }
             }
-            if (result !is RegistrationResult.Loading) buttonRegisterAction.isEnabled = true
+            if (result !is ResetResult.Loading) buttonResetAction.isEnabled = true
         }
     }
 

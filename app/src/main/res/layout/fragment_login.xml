@@ -31,7 +31,9 @@
             android:hint="@string/prompt_login"
             android:inputType="text"
             android:minHeight="48dp"
-            android:maxWidth="150dp"/>
+            android:maxWidth="150dp"
+            style="@style/BorderedEditTextStyle"
+            android:autofillHints="username"/>
 
         <EditText
             android:id="@+id/editTextPassword"
@@ -44,7 +46,8 @@
             android:inputType="textPassword"
             android:minHeight="48dp"
             tools:ignore="TextContrastCheck"
-            android:maxWidth="150dp"/>
+            android:maxWidth="150dp"
+            style="@style/BorderedEditTextStyle"/>
 
         <LinearLayout
             android:layout_width="match_parent"

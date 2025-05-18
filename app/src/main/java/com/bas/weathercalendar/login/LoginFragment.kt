@@ -16,6 +16,7 @@ import com.bas.weathercalendar.MainActivity
 import com.bas.weathercalendar.R
 import com.bas.weathercalendar.network.model.UserLogin
 import com.bas.weathercalendar.register.RegisterFragment
+import com.bas.weathercalendar.register.ResetPassFragment
 
 class LoginFragment : Fragment() {
 
@@ -49,6 +50,14 @@ class LoginFragment : Fragment() {
         buttonRegister.setOnClickListener {
             parentFragmentManager.beginTransaction().apply {
                 replace(R.id.fragment_container_auth, RegisterFragment())
+                addToBackStack(null)
+                commit()
+            }
+        }
+
+        buttonForgotPassword.setOnClickListener {
+            parentFragmentManager.beginTransaction().apply {
+                replace(R.id.fragment_container_auth, ResetPassFragment())
                 addToBackStack(null)
                 commit()
             }

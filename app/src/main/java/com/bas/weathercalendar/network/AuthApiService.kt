@@ -23,4 +23,7 @@ interface AuthApiService {
 
     @GET("/observations/") // Путь из OpenAPI
     suspend fun readObservations(): Response<List<Observation>>
+
+    @POST("/reset_password/")
+    suspend fun resetPassword(@Body userCreate: UserCreate): Response<UserCreate> // В ответе ожидаем UserCreate
 }
