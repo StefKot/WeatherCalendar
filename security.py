@@ -12,7 +12,6 @@ from database import get_db
 from sqlalchemy.orm import Session
 
 # Настройки для хеширования паролей
-# Используем bcrypt - рекомендуемый алгоритм
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Функции для хеширования и проверки паролей
@@ -25,8 +24,7 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 # Настройки для JWT токенов
-# В ПРОДАКШЕНЕ СЕКРЕТНЫЙ КЛЮЧ НУЖНО ХРАНИТЬ В ПЕРЕМЕННЫХ ОКРУЖЕНИЯ!
-SECRET_KEY = "ВАШ_СЕКРЕТНЫЙ_КЛЮЧ" # <-- ЗАМЕНИТЕ ЭТОТ КЛЮЧ НА СВОЙ В ПРОДАКШЕНЕ
+SECRET_KEY = "secret_key" 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 # Срок действия токена в минутах
 
@@ -61,7 +59,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         # Декодируем токен
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         # Извлекаем ID пользователя из полезной нагрузки токена (subject)
-        id: int = payload.get("sub") # type: ignore
+        id: int = payload.get("sub")
         if id is None:
             raise credentials_exception
         # Создаем модель TokenData для валидации

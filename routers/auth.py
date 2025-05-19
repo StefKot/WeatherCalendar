@@ -32,10 +32,6 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user) # Обновляем объект db_user, чтобы получить сгенерированный ID
 
     # Возвращаем данные пользователя (без хешированного пароля)
-    # Используем схему UserCreate для ответа, так как она соответствует структуре
-    # return user # Возвращать объект user может быть не совсем правильно, так как он содержит пароль в Pydantic модели.
-    # Лучше вернуть только username или ID, или использовать отдельную схему ответа.
-    # Например, просто подтверждение регистрации:
     return {
         "username": db_user.username,
         "message": "Пользователь успешно зарегистрирован"
@@ -63,8 +59,6 @@ def login_for_access_token(user: schemas.UserLogin, db: Session = Depends(get_db
         )
 
     # Если логин и пароль верны, создаем токен
-    # sub (subject) в токене - обычно уникальный идентификатор пользователя (можно использовать username или id)
-    # Рекомендуется использовать ID пользователя, так как username может потенциально измениться
     access_token = security.create_access_token(
         data={"sub": str(db_user.id)} # Передаем ID как строку
     )
@@ -92,17 +86,10 @@ def reset_password(
 
     return {"message": "Пароль успешно сброшен"}
 
-# --- НОВЫЙ ЭНДПОИНТ ДЛЯ ПРОВЕРКИ СТАТУСА ---
 @router.get("/status", response_model=schemas.UserResponse) # Можно использовать схему для ответа, например UserResponse
 def check_auth_status(
     # Используем зависимость get_current_user.
-    # Если токен невалиден, эта зависимость автоматически вызовет 401 Unauthorized.
-    # Если токен валиден, current_user будет содержать объект пользователя из БД.
     current_user: models.User = Depends(security.get_current_user)
 ):
     """Проверка валидности JWT токена и получение информации о текущем пользователе."""
-    # Если мы дошли до этой строки, значит get_current_user успешно выполнился,
-    # то есть токен валиден и пользователь найден.
-    # Возвращаем информацию о пользователе, исключая хешированный пароль.
-    # Схема UserResponse должна быть определена в schemas.py и не включать hashed_password.
     return current_user

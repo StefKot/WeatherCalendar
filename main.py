@@ -7,7 +7,6 @@ import models
 from database import engine
 
 # Создаем все таблицы в базе данных, если они еще не созданы
-# Это должно происходить при запуске приложения
 models.Base.metadata.create_all(bind=engine)
 
 # Создаем экземпляр приложения FastAPI

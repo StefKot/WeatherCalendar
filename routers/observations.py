@@ -8,13 +8,9 @@ from typing import List, Optional
 import schemas, models, security
 from database import get_db
 
-# Создаем роутер с префиксом "/observations" и тегами для документации
-# Этот роутер требует аутентификации для всех эндпоинтов
 router = APIRouter(
     prefix="/observations",
     tags=["observations"],
-    # Добавляем зависимость на получение текущего пользователя
-    # Эта зависимость будет применена ко всем эндпоинтам в этом роутере
     dependencies=[Depends(security.get_current_user)]
 )
 
@@ -22,12 +18,11 @@ router = APIRouter(
 def create_observation(
     observation: schemas.WeatherObservationCreate,
     db: Session = Depends(get_db),
-    # current_user уже определен как зависимость для роутера, но можем явно указать для clarity
     current_user: models.User = Depends(security.get_current_user)
 ):
     """Создать новую запись о погоде."""
     db_observation = models.WeatherObservation(
-        **observation.model_dump(), # model_dump() в Pydantic v2 (для v1 - .dict())
+        **observation.model_dump(), # Используем model_dump для получения словаря
         user_id=current_user.id
     )
     db.add(db_observation)
@@ -38,7 +33,6 @@ def create_observation(
 @router.get("/", response_model=List[schemas.WeatherObservation])
 def read_observations(
     # Параметры запроса. Optional означает, что параметр необязательный.
-    # Query() позволяет добавить описание и настройки валидации для параметров URL.
     obs_date: Optional[date] = Query(None, description="Дата наблюдения (YYYY-MM-DD)"),
     start_date: Optional[date] = Query(None, description="Начало периода (YYYY-MM-DD)"),
     end_date: Optional[date] = Query(None, description="Конец периода (YYYY-MM-DD)"),

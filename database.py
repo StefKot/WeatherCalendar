@@ -4,20 +4,15 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # URL для подключения к базе данных SQLite
-# `./weather_calendar.db` означает файл в той же директории
 SQLALCHEMY_DATABASE_URL = "sqlite:///./weather_calendar.db"
 
 # Создаем движок SQLAlchemy
-# connect_args={"check_same_thread": False} нужен только для SQLite
-# по умолчанию SQLite разрешает только один поток взаимодействовать с ним
-# если вы используете другой СУБД (PostgreSQL, MySQL), то это не нужно
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
 # Создаем фабрику сессий
-# autocommit=False: мы будем явно вызывать commit()
-# autoflush=False: изменения не будут сбрасываться в БД автоматически
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Базовый класс для декларативного определения моделей

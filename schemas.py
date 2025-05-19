@@ -51,10 +51,10 @@ class ResetPassword(BaseModel):
 # Схема для создания записи о погоде (входящие данные)
 class WeatherObservationCreate(BaseModel):
     city: str = Field(..., min_length=1)
-    observation_date: date # Pydantic автоматически преобразует строку в date, если формат корректный
-    observation_time: time # Pydantic автоматически преобразует строку в time
+    observation_date: date 
+    observation_time: time 
     temperature: float
-    precipitation_type: PrecipitationType # Используем Literal для валидации
+    precipitation_type: PrecipitationType 
 
 # Схема для ответа (исходящие данные)
 class WeatherObservation(WeatherObservationCreate):
@@ -62,6 +62,5 @@ class WeatherObservation(WeatherObservationCreate):
     user_id: int
 
     # Конфигурация для работы с ORM (SQLAlchemy)
-    # В Pydantic v2 используется from_attributes=True вместо orm_mode=True
     class Config:
         from_attributes = True
